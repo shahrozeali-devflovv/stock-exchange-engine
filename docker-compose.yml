@@ -1,0 +1,20 @@
+services:
+  api:
+    build: .
+    container_name: stock_exchange_api
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    depends_on:
+      - db
+
+  db:
+    image: postgres:17
+    container_name: stock_exchange_db
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: stock_exchange
+    ports:
+      - "5432:5432"
