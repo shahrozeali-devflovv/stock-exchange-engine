@@ -61,36 +61,36 @@ export default function TransactionsPage() {
     });
 
   return (
-    <main className="min-h-screen bg-[#F7FAF7] text-gray-900">
+    <main className="min-h-screen w-full overflow-x-hidden bg-[#F7FAF7] text-gray-900">
       {/* Page Header */}
-      <header className="border-b border-gray-200 bg-white px-6 py-5 shadow-sm md:px-10">
-        <div className="mx-auto flex max-w-7xl flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="text-sm font-bold uppercase tracking-wider text-orange-500">
+      <header className="border-b border-gray-200 bg-white shadow-sm">
+        <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-5 lg:px-8">
+          <div className="min-w-0">
+            <p className="text-xs font-bold uppercase tracking-wider text-orange-500 sm:text-sm">
               Activity
             </p>
 
-            <h1 className="mt-1 text-2xl font-bold tracking-tight text-[#14532D] md:text-3xl">
+            <h1 className="mt-1 text-2xl font-bold tracking-tight text-[#14532D] sm:text-3xl">
               Transaction History
             </h1>
 
-            <p className="mt-1 text-sm text-gray-500">
+            <p className="mt-1 max-w-xl text-sm leading-6 text-gray-500">
               Review your completed buy and sell orders.
             </p>
           </div>
 
           <Link
             href="/dashboard"
-            className="w-fit rounded-lg border border-green-200 bg-green-50 px-4 py-2 text-sm font-semibold text-green-700 transition hover:bg-green-100"
+            className="inline-flex w-fit shrink-0 items-center justify-center rounded-lg border border-green-200 bg-green-50 px-4 py-2 text-sm font-semibold text-green-700 transition hover:bg-green-100"
           >
             ← Dashboard
           </Link>
         </div>
       </header>
 
-      <section className="mx-auto max-w-7xl px-6 py-8 md:px-10">
+      <section className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
         {/* Summary Cards */}
-        <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:mb-8 lg:grid-cols-4">
           <SummaryCard
             label="Transactions"
             value={totalTransactions.toString()}
@@ -122,7 +122,7 @@ export default function TransactionsPage() {
 
         {/* Loading */}
         {loading && (
-          <div className="flex min-h-[350px] items-center justify-center rounded-2xl border border-gray-200 bg-white shadow-sm">
+          <div className="flex min-h-[280px] items-center justify-center rounded-2xl border border-gray-200 bg-white px-4 shadow-sm sm:min-h-[350px]">
             <div className="text-center">
               <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-green-100 border-t-green-600" />
 
@@ -135,7 +135,7 @@ export default function TransactionsPage() {
 
         {/* Error */}
         {!loading && error && (
-          <div className="rounded-2xl border border-red-200 bg-red-50 p-6">
+          <div className="rounded-2xl border border-red-200 bg-red-50 p-4 sm:p-6">
             <p className="font-semibold text-red-600">
               Could not load transactions
             </p>
@@ -148,12 +148,12 @@ export default function TransactionsPage() {
 
         {/* Empty State */}
         {!loading && !error && transactions.length === 0 && (
-          <div className="rounded-2xl border border-gray-200 bg-white px-6 py-16 text-center shadow-sm">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-orange-50 text-2xl font-bold text-orange-500">
+          <div className="rounded-2xl border border-gray-200 bg-white px-4 py-12 text-center shadow-sm sm:px-6 sm:py-16">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-orange-50 text-2xl font-bold text-orange-500 sm:h-16 sm:w-16">
               ↕
             </div>
 
-            <h2 className="mt-5 text-xl font-bold text-[#14532D]">
+            <h2 className="mt-5 text-lg font-bold text-[#14532D] sm:text-xl">
               No transactions yet
             </h2>
 
@@ -164,58 +164,167 @@ export default function TransactionsPage() {
 
             <Link
               href="/stocks"
-              className="mt-6 inline-block rounded-lg bg-orange-500 px-5 py-3 text-sm font-bold text-white transition hover:bg-orange-600"
+              className="mt-6 inline-flex w-full items-center justify-center rounded-lg bg-orange-500 px-5 py-3 text-sm font-bold text-white transition hover:bg-orange-600 sm:w-fit"
             >
               Browse Markets
             </Link>
           </div>
         )}
 
-        {/* Transaction Table */}
+        {/* Transactions */}
         {!loading && !error && transactions.length > 0 && (
-          <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
-            <div className="flex flex-col gap-3 border-b border-gray-100 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
-              <div>
+          <div className="min-w-0 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+            {/* Section Header */}
+            <div className="flex flex-col gap-4 border-b border-gray-100 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-5">
+              <div className="min-w-0">
                 <div className="mb-3 h-1 w-10 rounded-full bg-orange-500" />
 
                 <h2 className="font-bold text-[#14532D]">
                   Recent Activity
                 </h2>
 
-                <p className="mt-1 text-sm text-gray-500">
+                <p className="mt-1 text-xs text-gray-500 sm:text-sm">
                   Your latest trading transactions
                 </p>
               </div>
 
               <Link
                 href="/stocks"
-                className="w-fit rounded-lg bg-green-600 px-4 py-2 text-sm font-bold text-white transition hover:bg-green-700"
+                className="inline-flex w-full items-center justify-center rounded-lg bg-green-600 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-green-700 sm:w-fit"
               >
                 New Trade
               </Link>
             </div>
 
-            <div className="overflow-x-auto">
+            {/* Mobile Transaction Cards */}
+            <div className="divide-y divide-gray-100 sm:hidden">
+              {transactions.map((tx) => {
+                const isBuy =
+                  tx.transaction_type.toUpperCase() === "BUY";
+
+                const transactionValue =
+                  tx.quantity * tx.price;
+
+                const shortSymbol = tx.symbol
+                  ? tx.symbol
+                      .replace("BINANCE:", "")
+                      .replace("USDT", "")
+                  : `#${tx.stock_id}`;
+
+                return (
+                  <div
+                    key={tx.id}
+                    className="p-4 transition hover:bg-green-50/50"
+                  >
+                    {/* Top Row */}
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex min-w-0 items-center gap-3">
+                        <div
+                          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full font-bold ${
+                            isBuy
+                              ? "bg-green-50 text-green-700"
+                              : "bg-red-50 text-red-600"
+                          }`}
+                        >
+                          {isBuy ? "↓" : "↑"}
+                        </div>
+
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2">
+                            <p className="truncate font-bold text-[#14532D]">
+                              {shortSymbol}
+                            </p>
+
+                            <span
+                              className={`inline-flex shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                                isBuy
+                                  ? "bg-green-50 text-green-700 ring-1 ring-green-200"
+                                  : "bg-red-50 text-red-600 ring-1 ring-red-200"
+                              }`}
+                            >
+                              {tx.transaction_type.toUpperCase()}
+                            </span>
+                          </div>
+
+                          <p className="mt-1 text-xs text-gray-400">
+                            Transaction #{tx.id}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="shrink-0 text-right">
+                        <p className="text-sm font-bold text-gray-900">
+                          {formatMoney(transactionValue)}
+                        </p>
+
+                        <p
+                          className={`mt-1 text-xs font-semibold ${
+                            isBuy
+                              ? "text-green-600"
+                              : "text-red-600"
+                          }`}
+                        >
+                          {isBuy ? "Purchase" : "Sale"}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Details */}
+                    <div className="mt-4 grid grid-cols-2 gap-3">
+                      <div className="rounded-lg bg-[#F7FAF7] p-3">
+                        <p className="text-xs text-gray-500">
+                          Quantity
+                        </p>
+
+                        <p className="mt-1 break-all text-sm font-semibold text-gray-800">
+                          {tx.quantity.toLocaleString()}
+                        </p>
+                      </div>
+
+                      <div className="rounded-lg bg-[#F7FAF7] p-3">
+                        <p className="text-xs text-gray-500">
+                          Price
+                        </p>
+
+                        <p className="mt-1 break-all text-sm font-semibold text-gray-800">
+                          {formatMoney(tx.price)}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="mt-3 text-xs text-gray-500">
+                      Stock ID:{" "}
+                      <span className="font-semibold text-gray-700">
+                        {tx.stock_id}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Tablet / Desktop Table */}
+            <div className="hidden overflow-x-auto sm:block">
               <table className="w-full min-w-[800px]">
                 <thead>
                   <tr className="border-b border-gray-200 bg-[#F7FAF7]">
-                    <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wide text-gray-500">
+                    <th className="px-5 py-4 text-left text-xs font-bold uppercase tracking-wide text-gray-500 lg:px-6">
                       Transaction
                     </th>
 
-                    <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wide text-gray-500">
+                    <th className="px-5 py-4 text-left text-xs font-bold uppercase tracking-wide text-gray-500 lg:px-6">
                       Asset
                     </th>
 
-                    <th className="px-6 py-4 text-right text-xs font-bold uppercase tracking-wide text-gray-500">
+                    <th className="px-5 py-4 text-right text-xs font-bold uppercase tracking-wide text-gray-500 lg:px-6">
                       Quantity
                     </th>
 
-                    <th className="px-6 py-4 text-right text-xs font-bold uppercase tracking-wide text-gray-500">
+                    <th className="px-5 py-4 text-right text-xs font-bold uppercase tracking-wide text-gray-500 lg:px-6">
                       Price
                     </th>
 
-                    <th className="px-6 py-4 text-right text-xs font-bold uppercase tracking-wide text-gray-500">
+                    <th className="px-5 py-4 text-right text-xs font-bold uppercase tracking-wide text-gray-500 lg:px-6">
                       Total Value
                     </th>
                   </tr>
@@ -241,10 +350,10 @@ export default function TransactionsPage() {
                         className="border-b border-gray-100 transition last:border-0 hover:bg-green-50/50"
                       >
                         {/* Transaction Type */}
-                        <td className="px-6 py-5">
+                        <td className="px-5 py-5 lg:px-6">
                           <div className="flex items-center gap-3">
                             <div
-                              className={`flex h-9 w-9 items-center justify-center rounded-full font-bold ${
+                              className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full font-bold ${
                                 isBuy
                                   ? "bg-green-50 text-green-700"
                                   : "bg-red-50 text-red-600"
@@ -272,7 +381,7 @@ export default function TransactionsPage() {
                         </td>
 
                         {/* Asset */}
-                        <td className="px-6 py-5">
+                        <td className="px-5 py-5 lg:px-6">
                           <p className="font-bold text-[#14532D]">
                             {shortSymbol}
                           </p>
@@ -283,17 +392,17 @@ export default function TransactionsPage() {
                         </td>
 
                         {/* Quantity */}
-                        <td className="px-6 py-5 text-right text-gray-600">
+                        <td className="whitespace-nowrap px-5 py-5 text-right text-gray-600 lg:px-6">
                           {tx.quantity.toLocaleString()}
                         </td>
 
                         {/* Price */}
-                        <td className="px-6 py-5 text-right text-gray-600">
+                        <td className="whitespace-nowrap px-5 py-5 text-right text-gray-600 lg:px-6">
                           {formatMoney(tx.price)}
                         </td>
 
                         {/* Total */}
-                        <td className="px-6 py-5 text-right">
+                        <td className="whitespace-nowrap px-5 py-5 text-right lg:px-6">
                           <p className="font-bold text-gray-900">
                             {formatMoney(transactionValue)}
                           </p>
@@ -335,7 +444,7 @@ function SummaryCard({
   const isGreen = accent === "green";
 
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-md">
+    <div className="relative min-w-0 overflow-hidden rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-md">
       <div
         className={`absolute left-0 top-0 h-full w-1 ${
           isGreen ? "bg-green-600" : "bg-orange-500"
@@ -346,7 +455,7 @@ function SummaryCard({
         {label}
       </p>
 
-      <p className="mt-2 text-2xl font-bold text-[#14532D]">
+      <p className="mt-2 break-all text-xl font-bold text-[#14532D] sm:text-2xl">
         {value}
       </p>
 

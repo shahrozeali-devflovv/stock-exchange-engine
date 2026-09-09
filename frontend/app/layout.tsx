@@ -15,9 +15,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="min-h-screen bg-[#F7FAF7] text-gray-900">
+      <body className="min-h-screen w-full overflow-x-hidden bg-[#F7FAF7] text-gray-900 antialiased">
         <AuthLayout>
-          {children}
+          <main className="w-full min-w-0">{children}</main>
         </AuthLayout>
       </body>
     </html>
