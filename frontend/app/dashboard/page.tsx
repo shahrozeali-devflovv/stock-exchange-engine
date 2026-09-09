@@ -11,6 +11,7 @@ export default function DashboardPage() {
 
   const [portfolioValue, setPortfolioValue] = useState(0);
   const [stocksOwned, setStocksOwned] = useState(0);
+  const [loading, setLoading] = useState(true);
 
   // Load wallet balance
   useEffect(() => {

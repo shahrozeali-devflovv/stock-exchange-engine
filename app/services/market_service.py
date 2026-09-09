@@ -1,19 +1,45 @@
-import requests
+from app.database.session import SessionLocal
+from app.models.stock import Stock
+from app.core.redis import redis_client
+from app.core.logging import logger
 
-from app.core.config import settings
+def update_stock_price(symbol: str, price: float):
+    db = SessionLocal()
 
+    try:
+        stock = (
+            db.query(Stock)
+            .filter(Stock.symbol == symbol)
+            .first()
+        )
 
-def get_stock_quote(symbol: str):
-    url = "https://www.alphavantage.co/query"
+        if not stock:
+            stock = Stock(
+                symbol=symbol,
+                name=symbol,
+                current_price=price,
+            )
 
-    params = {
-        "function": "GLOBAL_QUOTE",
-        "symbol": symbol,
-        "apikey": settings.ALPHA_VANTAGE_API_KEY,
-    }
+            db.add(stock)
 
-    response = requests.get(url, params=params)
+        else:
+            stock.current_price = price
 
-    response.raise_for_status()
+        db.commit()
+        db.refresh(stock)
 
-    return response.json()
+        return stock.id
+
+    except Exception:
+        db.rollback()
+        raise
+
+    finally:
+        db.close()
+
+def cache_stock_price(symbol: str, price: float):
+    redis_client.set(
+        f"price:{symbol}",
+        price
+    )
+    

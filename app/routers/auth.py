@@ -11,7 +11,7 @@ from app.core.security import (
     create_access_token
 )
 from app.schemas.user import UserLogin
-
+from app.core.rate_limiter import login_rate_limiter
 router = APIRouter(
     prefix="/auth",
     tags=["Authentication"]
@@ -20,7 +20,8 @@ router = APIRouter(
 @router.post("/login")
 def login(
     user: UserLogin,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    _: None = Depends(login_rate_limiter)
 ):
     db_user = db.query(User).filter(
         User.email == user.email
@@ -88,7 +89,7 @@ def register(
     db.refresh(db_user)
     wallet = Wallet(
         user_id=db_user.id,
-        balance=100000
+        balance=10000000
     )
 
     db.add(wallet)

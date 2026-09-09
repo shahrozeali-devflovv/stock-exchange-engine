@@ -3,8 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.database.dependencies import get_db
 from app.models.stock import Stock
-from app.schemas.stock import StockResponse, StockSyncRequest
-from app.services.market_service import get_stock_quote
+from app.schemas.stock import StockResponse
 
 
 router = APIRouter(
@@ -20,54 +19,29 @@ router = APIRouter(
 def get_stocks(
     db: Session = Depends(get_db)
 ):
-    return db.query(Stock).all()
+    stocks = db.query(Stock).all()
+
+    return stocks
 
 
-@router.post(
-    "/sync",
+@router.get(
+    "/{stock_id}",
     response_model=StockResponse
 )
-def sync_stock(
-    request: StockSyncRequest,
+def get_stock(
+    stock_id: int,
     db: Session = Depends(get_db)
 ):
-    symbol = request.symbol.upper()
+    stock = (
+        db.query(Stock)
+        .filter(Stock.id == stock_id)
+        .first()
+    )
 
-    data = get_stock_quote(symbol)
-
-    quote = data.get("Global Quote", {})
-
-    if not quote:
+    if not stock:
         raise HTTPException(
             status_code=404,
-            detail="Stock quote not found"
+            detail="Stock not found"
         )
-
-    price = quote.get("05. price")
-
-    if not price:
-        raise HTTPException(
-            status_code=404,
-            detail="Stock price not available"
-        )
-
-    stock = db.query(Stock).filter(
-        Stock.symbol == symbol
-    ).first()
-
-    if stock:
-        stock.name = request.name
-        stock.current_price = float(price)
-    else:
-        stock = Stock(
-            symbol=symbol,
-            name=request.name,
-            current_price=float(price)
-        )
-
-        db.add(stock)
-
-    db.commit()
-    db.refresh(stock)
 
     return stock

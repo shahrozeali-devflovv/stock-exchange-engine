@@ -1,4 +1,5 @@
 services:
+
   api:
     build: .
     container_name: stock_exchange_api
@@ -8,6 +9,7 @@ services:
       - .env
     depends_on:
       - db
+      - redis
 
   db:
     image: postgres:17
@@ -18,3 +20,9 @@ services:
       POSTGRES_DB: stock_exchange
     ports:
       - "5432:5432"
+
+  redis:
+    image: redis:7-alpine
+    container_name: stock_exchange_redis
+    ports:
+      - "6379:6379"

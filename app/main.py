@@ -15,6 +15,7 @@ from app.routers.portfolio import router as portfolio_router
 from fastapi.middleware.cors import CORSMiddleware
 from app.models.transaction import Transaction
 from app.routers.transactions import router as transactions_router
+from app.routers.market import router as market_router
 app = FastAPI(
     title=settings.APP_NAME,
     version="1.0.0",
@@ -37,6 +38,7 @@ app.include_router(wallet_router)
 app.include_router(stocks_router)
 app.include_router(portfolio_router)
 app.include_router(transactions_router)
+app.include_router(market_router)
 print("Wallet router loaded")
 @app.get("/")
 def root():

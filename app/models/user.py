@@ -14,6 +14,9 @@ class User(Base):
     email = Column(String, unique=True, nullable=False)
 
     hashed_password = Column(String, nullable=False)
+
+    full_name = Column(String, nullable=True)
+    
     wallet = relationship(
     "Wallet",
     back_populates="user",
