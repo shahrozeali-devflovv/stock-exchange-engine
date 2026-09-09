@@ -61,7 +61,7 @@ export default function StocksPage() {
     setIsConnected(false);
 
     const ws = new WebSocket(
-      `ws://localhost:8000/ws/market?min_volume=${appliedMinVolume}`
+      `${process.env.NEXT_PUBLIC_WS_URL}/ws/market?min_volume=${appliedMinVolume}`
     );
 
     socketRef.current = ws;
