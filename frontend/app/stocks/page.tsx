@@ -306,44 +306,37 @@ export default function StocksPage() {
     }
   };
 
-  const totalMarketValue =
-    trades.reduce(
-      (total, trade) =>
-        total + trade.p * trade.v,
-      0
-    );
-
-  const averagePrice =
+  const lastUpdate =
     trades.length > 0
-      ? trades.reduce(
-          (total, trade) =>
-            total + trade.p,
-          0
-        ) / trades.length
-      : 0;
+      ? Math.max(
+          ...trades.map(
+            (trade) => trade.t
+          )
+        )
+      : null;
 
   return (
-    <main className="min-h-screen bg-slate-950 text-white">
-      {/* Header */}
-      <header className="border-b border-slate-800/80 bg-slate-950/90 px-6 py-5 backdrop-blur md:px-10">
-        <div className="mx-auto flex max-w-7xl items-center justify-between">
+    <main className="min-h-screen bg-[#F7FAF7] text-gray-900">
+      {/* Page Header */}
+      <header className="border-b border-gray-200 bg-white px-6 py-5 shadow-sm md:px-10">
+        <div className="mx-auto flex max-w-7xl flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-wider text-blue-400">
+            <p className="text-sm font-bold uppercase tracking-wider text-orange-500">
               Markets
             </p>
 
-            <h1 className="mt-1 text-2xl font-bold tracking-tight md:text-3xl">
+            <h1 className="mt-1 text-2xl font-bold tracking-tight text-[#14532D] md:text-3xl">
               Live Market
             </h1>
 
-            <p className="mt-1 text-sm text-slate-500">
+            <p className="mt-1 text-sm text-gray-500">
               Real-time cryptocurrency prices streamed through WebSockets.
             </p>
           </div>
 
           <Link
             href="/dashboard"
-            className="rounded-lg border border-slate-700 px-4 py-2 text-sm font-medium text-slate-300 transition hover:bg-slate-900"
+            className="w-fit rounded-lg border border-green-200 bg-green-50 px-4 py-2 text-sm font-semibold text-green-700 transition hover:bg-green-100"
           >
             ← Dashboard
           </Link>
@@ -351,10 +344,10 @@ export default function StocksPage() {
       </header>
 
       <section className="mx-auto max-w-7xl px-6 py-8 md:px-10">
-        {/* Connection banner */}
-        <div className="mb-6 flex flex-col gap-4 rounded-2xl border border-slate-800 bg-slate-900/60 p-5 sm:flex-row sm:items-center sm:justify-between">
+        {/* Connection Banner */}
+        <div className="mb-6 flex flex-col gap-4 rounded-2xl border border-green-200 bg-green-50 p-5 shadow-sm sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-sm font-medium text-slate-400">
+            <p className="text-sm font-medium text-gray-500">
               Market Connection
             </p>
 
@@ -362,20 +355,20 @@ export default function StocksPage() {
               <span
                 className={`h-3 w-3 rounded-full ${
                   isConnected
-                    ? "bg-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.8)]"
+                    ? "bg-green-600 shadow-[0_0_12px_rgba(22,163,74,0.4)]"
                     : isConnecting
-                      ? "animate-pulse bg-amber-400"
+                      ? "animate-pulse bg-orange-500"
                       : "bg-red-500"
                 }`}
               />
 
               <span
-                className={`font-semibold ${
+                className={`font-bold ${
                   isConnected
-                    ? "text-emerald-400"
+                    ? "text-green-700"
                     : isConnecting
-                      ? "text-amber-400"
-                      : "text-red-400"
+                      ? "text-orange-600"
+                      : "text-red-600"
                 }`}
               >
                 {isConnected
@@ -387,38 +380,33 @@ export default function StocksPage() {
             </div>
           </div>
 
-          <div className="rounded-lg bg-slate-800/80 px-4 py-2 text-sm text-slate-400">
+          <div className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-green-700 shadow-sm">
             WebSocket market feed
           </div>
         </div>
 
-        {/* Summary */}
+        {/* Summary Cards */}
         <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <MarketCard
-            label="Tracked Assets"
+            label="Live Assets"
             value={String(
               trades.length
             )}
-            description="Live market symbols"
+            description="Currently tracked symbols"
+            accent="green"
           />
 
           <MarketCard
-            label="Average Price"
-            value={`$${formatPrice(
-              averagePrice
-            )}`}
-            description="Across visible assets"
-          />
-
-          <MarketCard
-            label="Market Activity"
-            value={`$${totalMarketValue.toLocaleString(
-              undefined,
-              {
-                maximumFractionDigits: 0,
-              }
-            )}`}
-            description="Price × latest volume"
+            label="Connection"
+            value={
+              isConnected
+                ? "Live"
+                : isConnecting
+                  ? "Connecting"
+                  : "Offline"
+            }
+            description="WebSocket market status"
+            accent="orange"
           />
 
           <MarketCard
@@ -427,25 +415,41 @@ export default function StocksPage() {
               appliedMinVolume
             }
             description="Minimum trade volume"
+            accent="green"
+          />
+
+          <MarketCard
+            label="Last Update"
+            value={
+              lastUpdate
+                ? formatTime(
+                    lastUpdate
+                  )
+                : "Waiting"
+            }
+            description="Most recent market event"
+            accent="orange"
           />
         </div>
 
-        {/* Filter */}
-        <div className="mb-6 rounded-2xl border border-slate-800 bg-slate-900/60 p-6">
+        {/* Market Filter */}
+        <div className="mb-6 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
           <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
             <div>
-              <h2 className="font-semibold">
+              <div className="mb-3 h-1 w-10 rounded-full bg-orange-500" />
+
+              <h2 className="font-bold text-[#14532D]">
                 Market Filter
               </h2>
 
-              <p className="mt-1 text-sm text-slate-500">
+              <p className="mt-1 text-sm text-gray-500">
                 Filter incoming trades by minimum volume.
               </p>
             </div>
 
             <div className="flex w-full flex-col gap-3 sm:flex-row lg:w-auto">
               <div>
-                <label className="mb-2 block text-xs font-medium uppercase tracking-wide text-slate-500">
+                <label className="mb-2 block text-xs font-bold uppercase tracking-wide text-gray-500">
                   Minimum Volume
                 </label>
 
@@ -471,7 +475,7 @@ export default function StocksPage() {
                       handleApplyFilter();
                     }
                   }}
-                  className="w-full rounded-lg border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none transition placeholder:text-slate-600 focus:border-blue-500 sm:w-56"
+                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-green-600 focus:ring-2 focus:ring-green-100 sm:w-56"
                   placeholder="0"
                 />
               </div>
@@ -481,7 +485,7 @@ export default function StocksPage() {
                 onClick={
                   handleApplyFilter
                 }
-                className="self-end rounded-lg bg-blue-600 px-6 py-3 font-semibold transition hover:bg-blue-500"
+                className="self-end rounded-lg bg-orange-500 px-6 py-3 font-bold text-white shadow-sm transition hover:bg-orange-600"
               >
                 Apply Filter
               </button>
@@ -489,13 +493,13 @@ export default function StocksPage() {
           </div>
 
           {filterError ? (
-            <p className="mt-4 text-sm text-red-400">
+            <p className="mt-4 text-sm font-medium text-red-600">
               {filterError}
             </p>
           ) : (
-            <p className="mt-4 text-sm text-slate-500">
+            <p className="mt-4 text-sm text-gray-500">
               Showing trades with volume greater than or equal to{" "}
-              <span className="font-semibold text-white">
+              <span className="font-bold text-[#14532D]">
                 {
                   appliedMinVolume
                 }
@@ -504,21 +508,21 @@ export default function StocksPage() {
           )}
         </div>
 
-        {/* Market table */}
-        <div className="overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/50">
-          <div className="flex items-center justify-between border-b border-slate-800 px-6 py-5">
+        {/* Market Table */}
+        <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+          <div className="flex items-center justify-between border-b border-gray-100 px-6 py-5">
             <div>
-              <h2 className="font-semibold">
+              <h2 className="font-bold text-[#14532D]">
                 Live Assets
               </h2>
 
-              <p className="mt-1 text-sm text-slate-500">
+              <p className="mt-1 text-sm text-gray-500">
                 Latest market update for each asset.
               </p>
             </div>
 
-            <div className="hidden items-center gap-2 text-xs text-slate-500 sm:flex">
-              <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
+            <div className="hidden items-center gap-2 text-xs font-medium text-green-700 sm:flex">
+              <span className="h-2 w-2 animate-pulse rounded-full bg-green-600" />
               Auto updating
             </div>
           </div>
@@ -526,24 +530,24 @@ export default function StocksPage() {
           <div className="overflow-x-auto">
             <table className="w-full min-w-[800px]">
               <thead>
-                <tr className="border-b border-slate-800 bg-slate-950/40">
-                  <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                <tr className="border-b border-gray-200 bg-[#F7FAF7]">
+                  <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wide text-gray-500">
                     Asset
                   </th>
 
-                  <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wide text-gray-500">
                     Updated
                   </th>
 
-                  <th className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  <th className="px-6 py-4 text-right text-xs font-bold uppercase tracking-wide text-gray-500">
                     Price
                   </th>
 
-                  <th className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  <th className="px-6 py-4 text-right text-xs font-bold uppercase tracking-wide text-gray-500">
                     Volume
                   </th>
 
-                  <th className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  <th className="px-6 py-4 text-right text-xs font-bold uppercase tracking-wide text-gray-500">
                     Trade
                   </th>
                 </tr>
@@ -562,11 +566,11 @@ export default function StocksPage() {
                       <div className="flex flex-col items-center gap-4">
                         {(isConnecting ||
                           isConnected) && (
-                          <div className="h-10 w-10 animate-spin rounded-full border-4 border-slate-800 border-t-blue-500" />
+                          <div className="h-10 w-10 animate-spin rounded-full border-4 border-green-100 border-t-green-600" />
                         )}
 
                         <div>
-                          <p className="font-medium text-slate-300">
+                          <p className="font-semibold text-gray-700">
                             {isConnecting
                               ? "Connecting to market"
                               : isConnected
@@ -574,7 +578,7 @@ export default function StocksPage() {
                                 : "Market connection closed"}
                           </p>
 
-                          <p className="mt-2 text-sm text-slate-500">
+                          <p className="mt-2 text-sm text-gray-500">
                             {isConnected
                               ? "New trades will appear automatically."
                               : "Check the backend WebSocket connection."}
@@ -603,24 +607,24 @@ export default function StocksPage() {
                       return (
                         <tr
                           key={`${trade.t}-${trade.p}-${index}`}
-                          className="border-b border-slate-800/70 transition last:border-0 hover:bg-slate-800/30"
+                          className="border-b border-gray-100 transition last:border-0 hover:bg-green-50/50"
                         >
                           <td className="px-6 py-5">
                             <div className="flex items-center gap-3">
-                              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-500/10 text-xs font-bold text-blue-400">
+                              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-50 text-xs font-bold text-green-700">
                                 {
                                   shortSymbol
                                 }
                               </div>
 
                               <div>
-                                <p className="font-semibold">
+                                <p className="font-bold text-[#14532D]">
                                   {
                                     shortSymbol
                                   }
                                 </p>
 
-                                <p className="mt-1 text-xs text-slate-500">
+                                <p className="mt-1 text-xs text-gray-500">
                                   {
                                     trade.s
                                   }
@@ -629,26 +633,26 @@ export default function StocksPage() {
                             </div>
                           </td>
 
-                          <td className="px-6 py-5 text-sm text-slate-400">
+                          <td className="px-6 py-5 text-sm text-gray-500">
                             {formatTime(
                               trade.t
                             )}
                           </td>
 
                           <td className="px-6 py-5 text-right">
-                            <p className="text-lg font-semibold">
+                            <p className="text-lg font-bold text-gray-900">
                               $
                               {formatPrice(
                                 trade.p
                               )}
                             </p>
 
-                            <p className="mt-1 text-xs text-emerald-400">
+                            <p className="mt-1 text-xs font-semibold text-green-600">
                               ● Live
                             </p>
                           </td>
 
-                          <td className="px-6 py-5 text-right text-slate-300">
+                          <td className="px-6 py-5 text-right text-gray-600">
                             {trade.v.toLocaleString()}
                           </td>
 
@@ -662,7 +666,7 @@ export default function StocksPage() {
                                     "BUY"
                                   )
                                 }
-                                className="rounded-lg bg-emerald-500/10 px-4 py-2 text-sm font-semibold text-emerald-400 ring-1 ring-emerald-500/20 transition hover:bg-emerald-500 hover:text-white"
+                                className="rounded-lg bg-green-600 px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-green-700"
                               >
                                 Buy
                               </button>
@@ -675,7 +679,7 @@ export default function StocksPage() {
                                     "SELL"
                                   )
                                 }
-                                className="rounded-lg bg-red-500/10 px-4 py-2 text-sm font-semibold text-red-400 ring-1 ring-red-500/20 transition hover:bg-red-500 hover:text-white"
+                                className="rounded-lg bg-red-50 px-4 py-2 text-sm font-bold text-red-600 ring-1 ring-red-200 transition hover:bg-red-600 hover:text-white"
                               >
                                 Sell
                               </button>
@@ -695,17 +699,17 @@ export default function StocksPage() {
       {/* Trade Modal */}
       {selectedTrade &&
         tradeAction && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
-            <div className="w-full max-w-md overflow-hidden rounded-2xl border border-slate-700 bg-slate-900 shadow-2xl">
-              <div className="border-b border-slate-800 p-6">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+            <div className="w-full max-w-md overflow-hidden rounded-2xl border border-gray-200 bg-white text-gray-900 shadow-2xl">
+              <div className="border-b border-gray-100 p-6">
                 <div className="flex items-start justify-between">
                   <div>
                     <p
-                      className={`text-sm font-semibold ${
+                      className={`text-sm font-bold ${
                         tradeAction ===
                         "BUY"
-                          ? "text-emerald-400"
-                          : "text-red-400"
+                          ? "text-green-600"
+                          : "text-red-600"
                       }`}
                     >
                       {
@@ -713,7 +717,7 @@ export default function StocksPage() {
                       } ORDER
                     </p>
 
-                    <h2 className="mt-1 text-2xl font-bold">
+                    <h2 className="mt-1 text-2xl font-bold text-[#14532D]">
                       {
                         selectedTrade.s
                       }
@@ -728,7 +732,7 @@ export default function StocksPage() {
                     disabled={
                       tradeLoading
                     }
-                    className="rounded-lg px-3 py-2 text-slate-500 transition hover:bg-slate-800 hover:text-white"
+                    className="rounded-lg px-3 py-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-800"
                   >
                     ✕
                   </button>
@@ -736,26 +740,28 @@ export default function StocksPage() {
               </div>
 
               <div className="p-6">
-                <div className="rounded-xl border border-slate-800 bg-slate-950/60 p-4">
-                  <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                {/* Current Price */}
+                <div className="rounded-xl border border-green-100 bg-green-50 p-4">
+                  <p className="text-xs font-bold uppercase tracking-wide text-gray-500">
                     Current Market Price
                   </p>
 
-                  <p className="mt-2 text-3xl font-bold">
+                  <p className="mt-2 text-3xl font-bold text-[#14532D]">
                     $
                     {formatPrice(
                       selectedTrade.p
                     )}
                   </p>
 
-                  <div className="mt-2 flex items-center gap-2 text-xs text-emerald-400">
-                    <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                  <div className="mt-2 flex items-center gap-2 text-xs font-semibold text-green-600">
+                    <span className="h-2 w-2 rounded-full bg-green-600" />
                     Live price
                   </div>
                 </div>
 
+                {/* Quantity */}
                 <div className="mt-5">
-                  <label className="mb-2 block text-sm font-medium text-slate-300">
+                  <label className="mb-2 block text-sm font-semibold text-gray-700">
                     Quantity
                   </label>
 
@@ -775,21 +781,22 @@ export default function StocksPage() {
                       )
                     }
                     placeholder="Enter quantity"
-                    className="w-full rounded-lg border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none transition placeholder:text-slate-600 focus:border-blue-500"
+                    className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-green-600 focus:ring-2 focus:ring-green-100"
                   />
                 </div>
 
+                {/* Estimated Total */}
                 {quantity &&
                   Number(
                     quantity
                   ) > 0 && (
-                    <div className="mt-5 rounded-xl border border-slate-800 bg-slate-950/60 p-4">
+                    <div className="mt-5 rounded-xl border border-orange-100 bg-orange-50 p-4">
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-slate-500">
+                        <span className="text-sm font-medium text-gray-500">
                           Estimated Total
                         </span>
 
-                        <span className="text-xl font-bold">
+                        <span className="text-xl font-bold text-orange-600">
                           $
                           {(
                             selectedTrade.p *
@@ -808,20 +815,23 @@ export default function StocksPage() {
                     </div>
                   )}
 
+                {/* Trade Error */}
                 {tradeError && (
-                  <div className="mt-4 rounded-lg border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-400">
+                  <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm font-medium text-red-600">
                     {tradeError}
                   </div>
                 )}
 
+                {/* Trade Success */}
                 {tradeMessage && (
-                  <div className="mt-4 rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-3 text-sm text-emerald-400">
+                  <div className="mt-4 rounded-lg border border-green-200 bg-green-50 p-3 text-sm font-medium text-green-700">
                     {
                       tradeMessage
                     }
                   </div>
                 )}
 
+                {/* Buttons */}
                 <div className="mt-6 flex gap-3">
                   <button
                     type="button"
@@ -831,7 +841,7 @@ export default function StocksPage() {
                     disabled={
                       tradeLoading
                     }
-                    className="flex-1 rounded-lg border border-slate-700 px-4 py-3 font-semibold text-slate-300 transition hover:bg-slate-800 disabled:opacity-50"
+                    className="flex-1 rounded-lg border border-gray-300 px-4 py-3 font-semibold text-gray-700 transition hover:bg-gray-50 disabled:opacity-50"
                   >
                     Cancel
                   </button>
@@ -848,11 +858,11 @@ export default function StocksPage() {
                         quantity
                       ) <= 0
                     }
-                    className={`flex-1 rounded-lg px-4 py-3 font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 ${
+                    className={`flex-1 rounded-lg px-4 py-3 font-bold text-white transition disabled:cursor-not-allowed disabled:opacity-50 ${
                       tradeAction ===
                       "BUY"
-                        ? "bg-emerald-600 hover:bg-emerald-500"
-                        : "bg-red-600 hover:bg-red-500"
+                        ? "bg-green-600 hover:bg-green-700"
+                        : "bg-red-600 hover:bg-red-700"
                     }`}
                   >
                     {tradeLoading
@@ -872,22 +882,41 @@ function MarketCard({
   label,
   value,
   description,
+  accent,
 }: {
   label: string;
   value: string;
   description: string;
+  accent: "green" | "orange";
 }) {
+  const isGreen =
+    accent === "green";
+
   return (
-    <div className="rounded-2xl border border-slate-800 bg-slate-900/50 p-5">
-      <p className="text-sm text-slate-500">
+    <div className="relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-md">
+      <div
+        className={`absolute left-0 top-0 h-full w-1 ${
+          isGreen
+            ? "bg-green-600"
+            : "bg-orange-500"
+        }`}
+      />
+
+      <p className="text-sm font-medium text-gray-500">
         {label}
       </p>
 
-      <p className="mt-2 text-2xl font-bold">
+      <p className="mt-2 text-2xl font-bold text-[#14532D]">
         {value}
       </p>
 
-      <p className="mt-1 text-xs text-slate-600">
+      <p
+        className={`mt-1 text-xs font-medium ${
+          isGreen
+            ? "text-green-600"
+            : "text-orange-500"
+        }`}
+      >
         {description}
       </p>
     </div>

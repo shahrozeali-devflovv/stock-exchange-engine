@@ -15,7 +15,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="bg-slate-950 text-white">
+      <body className="min-h-screen bg-[#F7FAF7] text-gray-900">
         <AuthLayout>
           {children}
         </AuthLayout>

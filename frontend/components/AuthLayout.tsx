@@ -23,13 +23,11 @@ export default function AuthLayout({
 
     const publicPages = ["/register", "/login"];
 
-    // Not logged in → only login/register allowed
     if (!loggedIn && !publicPages.includes(pathname)) {
       router.replace("/register");
       return;
     }
 
-    // Already logged in → don't show login/register
     if (loggedIn && publicPages.includes(pathname)) {
       router.replace("/dashboard");
       return;
@@ -42,43 +40,57 @@ export default function AuthLayout({
     return null;
   }
 
+  const navLinks = [
+    { href: "/dashboard", label: "Dashboard" },
+    { href: "/stocks", label: "Stocks" },
+    { href: "/portfolio", label: "Portfolio" },
+    { href: "/transactions", label: "Transactions" },
+  ];
+
   return (
     <>
       {isLoggedIn && (
-        <nav className="border-b border-slate-800 bg-slate-900">
+        <nav className="border-b border-green-800 bg-[#14532D] text-white shadow-sm">
           <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-            <Link href="/dashboard" className="text-xl font-bold">
-              Stock Exchange
+            {/* Logo */}
+            <Link
+              href="/dashboard"
+              className="flex items-center gap-3"
+            >
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-orange-500 font-bold text-white">
+                S
+              </div>
+
+              <div>
+                <p className="text-lg font-bold leading-none">
+                  Stock Exchange
+                </p>
+
+                <p className="mt-1 text-xs text-green-200">
+                  Trading Engine
+                </p>
+              </div>
             </Link>
 
-            <div className="flex items-center gap-6">
-              <Link
-                href="/dashboard"
-                className="text-slate-300 transition hover:text-white"
-              >
-                Dashboard
-              </Link>
+            {/* Navigation */}
+            <div className="flex items-center gap-2">
+              {navLinks.map((link) => {
+                const active = pathname === link.href;
 
-              <Link
-                href="/stocks"
-                className="text-slate-300 transition hover:text-white"
-              >
-                Stocks
-              </Link>
-
-              <Link
-                href="/portfolio"
-                className="text-slate-300 transition hover:text-white"
-              >
-                Portfolio
-              </Link>
-
-              <Link
-                href="/transactions"
-                className="text-slate-300 transition hover:text-white"
-              >
-                Transactions
-              </Link>
+                return (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
+                      active
+                        ? "bg-orange-500 text-white shadow-sm"
+                        : "text-green-100 hover:bg-white/10 hover:text-white"
+                    }`}
+                  >
+                    {link.label}
+                  </Link>
+                );
+              })}
             </div>
           </div>
         </nav>
