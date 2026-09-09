@@ -62,12 +62,12 @@ export default function PortfolioPage() {
     });
 
   return (
-    <main className="min-h-screen bg-slate-950 text-white">
+    <main className="min-h-screen bg-[#F7FAF7] text-gray-900">
       {/* Header */}
-      <header className="border-b border-slate-800/80 bg-slate-950/90 px-6 py-5 backdrop-blur md:px-10">
+      <header className="bg-[#14532D] px-6 py-5 text-white shadow-md md:px-10">
         <div className="mx-auto flex max-w-7xl items-center justify-between">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-wider text-blue-400">
+            <p className="text-sm font-bold uppercase tracking-wider text-orange-400">
               Portfolio
             </p>
 
@@ -75,14 +75,14 @@ export default function PortfolioPage() {
               My Portfolio
             </h1>
 
-            <p className="mt-1 text-sm text-slate-500">
+            <p className="mt-1 text-sm text-green-100">
               Track your assets and current market value.
             </p>
           </div>
 
           <Link
             href="/dashboard"
-            className="rounded-lg border border-slate-700 px-4 py-2 text-sm font-medium text-slate-300 transition hover:bg-slate-900"
+            className="rounded-lg border border-white/30 px-4 py-2 text-sm font-medium text-white transition hover:bg-white hover:text-[#14532D]"
           >
             ← Dashboard
           </Link>
@@ -90,30 +90,39 @@ export default function PortfolioPage() {
       </header>
 
       <section className="mx-auto max-w-7xl px-6 py-8 md:px-10">
-        {/* Main portfolio value */}
-        <div className="mb-6 overflow-hidden rounded-2xl border border-blue-500/20 bg-gradient-to-br from-blue-600/20 via-slate-900 to-slate-900 p-7">
-          <p className="text-sm font-medium text-slate-400">
-            Total Portfolio Value
-          </p>
+        {/* Main Portfolio Card */}
+        <div className="relative mb-6 overflow-hidden rounded-2xl bg-gradient-to-r from-[#14532D] to-[#15803D] p-7 text-white shadow-lg">
+          <div className="absolute -right-12 -top-12 h-40 w-40 rounded-full bg-orange-400/20" />
+          <div className="absolute -bottom-16 right-32 h-32 w-32 rounded-full bg-white/5" />
 
-          <p className="mt-2 text-4xl font-bold tracking-tight md:text-5xl">
-            {formatMoney(totalValue)}
-          </p>
+          <div className="relative">
+            <p className="text-sm font-medium text-green-100">
+              Total Portfolio Value
+            </p>
 
-          <div className="mt-6 flex flex-wrap gap-3">
-            <Link
-              href="/stocks"
-              className="rounded-lg bg-blue-600 px-5 py-3 text-sm font-semibold transition hover:bg-blue-500"
-            >
-              Trade Markets →
-            </Link>
+            <p className="mt-2 text-4xl font-bold tracking-tight md:text-5xl">
+              {formatMoney(totalValue)}
+            </p>
 
-            <Link
-              href="/transactions"
-              className="rounded-lg border border-slate-700 px-5 py-3 text-sm font-semibold text-slate-300 transition hover:bg-slate-800"
-            >
-              Transaction History
-            </Link>
+            <p className="mt-3 text-sm text-green-100/80">
+              Current market value of all your positions
+            </p>
+
+            <div className="mt-6 flex flex-wrap gap-3">
+              <Link
+                href="/stocks"
+                className="rounded-lg bg-orange-500 px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-orange-600"
+              >
+                Trade Markets →
+              </Link>
+
+              <Link
+                href="/transactions"
+                className="rounded-lg border border-white/30 bg-white/10 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white hover:text-[#14532D]"
+              >
+                Transaction History
+              </Link>
+            </div>
           </div>
         </div>
 
@@ -123,18 +132,21 @@ export default function PortfolioPage() {
             label="Portfolio Value"
             value={formatMoney(totalValue)}
             description="Current market value"
+            accent="green"
           />
 
           <SummaryCard
             label="Units Owned"
             value={totalStocks.toLocaleString()}
             description="Across all assets"
+            accent="orange"
           />
 
           <SummaryCard
             label="Assets"
             value={holdings.length.toString()}
             description="Different positions"
+            accent="green"
           />
 
           <SummaryCard
@@ -145,16 +157,17 @@ export default function PortfolioPage() {
                 ? formatMoney(largestHolding.market_value)
                 : "No holdings yet"
             }
+            accent="orange"
           />
         </div>
 
         {/* Loading */}
         {loading && (
-          <div className="flex min-h-[300px] items-center justify-center rounded-2xl border border-slate-800 bg-slate-900/50">
+          <div className="flex min-h-[300px] items-center justify-center rounded-2xl border border-gray-200 bg-white shadow-sm">
             <div className="text-center">
-              <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-slate-800 border-t-blue-500" />
+              <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-green-100 border-t-green-600" />
 
-              <p className="mt-4 text-sm text-slate-500">
+              <p className="mt-4 text-sm text-gray-500">
                 Loading your portfolio...
               </p>
             </div>
@@ -163,12 +176,12 @@ export default function PortfolioPage() {
 
         {/* Error */}
         {!loading && error && (
-          <div className="rounded-2xl border border-red-500/20 bg-red-500/10 p-6">
-            <p className="font-semibold text-red-400">
+          <div className="rounded-2xl border border-red-200 bg-red-50 p-6">
+            <p className="font-semibold text-red-600">
               Could not load portfolio
             </p>
 
-            <p className="mt-1 text-sm text-red-400/70">
+            <p className="mt-1 text-sm text-red-500">
               {error}
             </p>
           </div>
@@ -176,16 +189,16 @@ export default function PortfolioPage() {
 
         {/* Empty Portfolio */}
         {!loading && !error && holdings.length === 0 && (
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/50 px-6 py-16 text-center">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-blue-500/10 text-2xl font-bold text-blue-400">
+          <div className="rounded-2xl border border-gray-200 bg-white px-6 py-16 text-center shadow-sm">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-50 text-2xl font-bold text-green-700">
               $
             </div>
 
-            <h2 className="mt-5 text-xl font-semibold">
+            <h2 className="mt-5 text-xl font-bold text-[#14532D]">
               Your portfolio is empty
             </h2>
 
-            <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-500">
+            <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-gray-500">
               You don't currently own any assets. Visit the live
               market and make your first trade to start building
               your portfolio.
@@ -193,50 +206,53 @@ export default function PortfolioPage() {
 
             <Link
               href="/stocks"
-              className="mt-6 inline-block rounded-lg bg-blue-600 px-5 py-3 text-sm font-semibold transition hover:bg-blue-500"
+              className="mt-6 inline-block rounded-lg bg-orange-500 px-5 py-3 text-sm font-bold text-white transition hover:bg-orange-600"
             >
               Browse Markets
             </Link>
           </div>
         )}
 
+        {/* Portfolio Content */}
         {!loading && !error && holdings.length > 0 && (
           <div className="grid gap-6 lg:grid-cols-3">
-            {/* Holdings Table */}
-            <div className="overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/50 lg:col-span-2">
-              <div className="flex items-center justify-between border-b border-slate-800 px-6 py-5">
+            {/* Holdings */}
+            <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm lg:col-span-2">
+              <div className="flex items-center justify-between border-b border-gray-100 px-6 py-5">
                 <div>
-                  <h2 className="font-semibold">
+                  <div className="mb-2 h-1 w-10 rounded-full bg-orange-500" />
+
+                  <h2 className="font-bold text-[#14532D]">
                     Holdings
                   </h2>
 
-                  <p className="mt-1 text-sm text-slate-500">
+                  <p className="mt-1 text-sm text-gray-500">
                     Your current market positions
                   </p>
                 </div>
 
-                <span className="rounded-full bg-blue-500/10 px-3 py-1 text-xs font-semibold text-blue-400">
+                <span className="rounded-full bg-green-50 px-3 py-1 text-xs font-bold text-green-700">
                   {holdings.length} assets
                 </span>
               </div>
 
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[700px]">
-                  <thead>
-                    <tr className="border-b border-slate-800 bg-slate-950/40">
-                      <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  <thead className="bg-[#F7FAF7]">
+                    <tr>
+                      <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wide text-gray-500">
                         Asset
                       </th>
 
-                      <th className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wide text-slate-500">
+                      <th className="px-6 py-4 text-right text-xs font-bold uppercase tracking-wide text-gray-500">
                         Quantity
                       </th>
 
-                      <th className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wide text-slate-500">
+                      <th className="px-6 py-4 text-right text-xs font-bold uppercase tracking-wide text-gray-500">
                         Price
                       </th>
 
-                      <th className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wide text-slate-500">
+                      <th className="px-6 py-4 text-right text-xs font-bold uppercase tracking-wide text-gray-500">
                         Value
                       </th>
                     </tr>
@@ -256,40 +272,40 @@ export default function PortfolioPage() {
                       return (
                         <tr
                           key={holding.stock_id}
-                          className="border-b border-slate-800/70 transition last:border-0 hover:bg-slate-800/30"
+                          className="border-t border-gray-100 transition hover:bg-green-50/50"
                         >
                           <td className="px-6 py-5">
                             <div className="flex items-center gap-3">
-                              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-500/10 text-xs font-bold text-blue-400">
+                              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-50 text-xs font-bold text-green-700">
                                 {shortSymbol}
                               </div>
 
                               <div>
-                                <p className="font-semibold">
+                                <p className="font-bold text-[#14532D]">
                                   {holding.symbol}
                                 </p>
 
-                                <p className="mt-1 text-xs text-slate-500">
+                                <p className="mt-1 text-xs text-gray-500">
                                   {holding.name}
                                 </p>
                               </div>
                             </div>
                           </td>
 
-                          <td className="px-6 py-5 text-right text-slate-300">
+                          <td className="px-6 py-5 text-right text-gray-600">
                             {holding.quantity.toLocaleString()}
                           </td>
 
-                          <td className="px-6 py-5 text-right text-slate-300">
+                          <td className="px-6 py-5 text-right text-gray-600">
                             {formatMoney(holding.current_price)}
                           </td>
 
                           <td className="px-6 py-5 text-right">
-                            <p className="font-semibold">
+                            <p className="font-bold text-gray-900">
                               {formatMoney(holding.market_value)}
                             </p>
 
-                            <p className="mt-1 text-xs text-slate-500">
+                            <p className="mt-1 text-xs font-medium text-orange-500">
                               {percentage.toFixed(1)}% of portfolio
                             </p>
                           </td>
@@ -301,17 +317,17 @@ export default function PortfolioPage() {
               </div>
             </div>
 
-            {/* Allocation Visual */}
-            <div className="rounded-2xl border border-slate-800 bg-slate-900/50 p-6">
-              <div>
-                <h2 className="font-semibold">
-                  Allocation
-                </h2>
+            {/* Allocation */}
+            <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+              <div className="h-1 w-10 rounded-full bg-orange-500" />
 
-                <p className="mt-1 text-sm text-slate-500">
-                  Portfolio distribution
-                </p>
-              </div>
+              <h2 className="mt-4 font-bold text-[#14532D]">
+                Allocation
+              </h2>
+
+              <p className="mt-1 text-sm text-gray-500">
+                Portfolio distribution
+              </p>
 
               <div className="mt-7 space-y-6">
                 {holdings
@@ -320,7 +336,7 @@ export default function PortfolioPage() {
                     (a, b) =>
                       b.market_value - a.market_value
                   )
-                  .map((holding) => {
+                  .map((holding, index) => {
                     const percentage =
                       totalValue > 0
                         ? (holding.market_value / totalValue) * 100
@@ -334,23 +350,27 @@ export default function PortfolioPage() {
                       <div key={holding.stock_id}>
                         <div className="mb-2 flex items-center justify-between">
                           <div>
-                            <p className="text-sm font-semibold">
+                            <p className="text-sm font-bold text-gray-700">
                               {shortSymbol}
                             </p>
 
-                            <p className="text-xs text-slate-500">
+                            <p className="text-xs text-gray-500">
                               {formatMoney(holding.market_value)}
                             </p>
                           </div>
 
-                          <p className="text-sm font-semibold text-slate-300">
+                          <p className="text-sm font-bold text-gray-700">
                             {percentage.toFixed(1)}%
                           </p>
                         </div>
 
-                        <div className="h-2 overflow-hidden rounded-full bg-slate-800">
+                        <div className="h-2 overflow-hidden rounded-full bg-gray-100">
                           <div
-                            className="h-full rounded-full bg-blue-500 transition-all"
+                            className={`h-full rounded-full transition-all ${
+                              index % 2 === 0
+                                ? "bg-green-600"
+                                : "bg-orange-500"
+                            }`}
                             style={{
                               width: `${percentage}%`,
                             }}
@@ -361,13 +381,13 @@ export default function PortfolioPage() {
                   })}
               </div>
 
-              <div className="mt-8 border-t border-slate-800 pt-5">
+              <div className="mt-8 border-t border-gray-100 pt-5">
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-slate-500">
+                  <span className="text-gray-500">
                     Total
                   </span>
 
-                  <span className="font-semibold">
+                  <span className="font-bold text-[#14532D]">
                     {formatMoney(totalValue)}
                   </span>
                 </div>
@@ -384,22 +404,36 @@ function SummaryCard({
   label,
   value,
   description,
+  accent,
 }: {
   label: string;
   value: string;
   description: string;
+  accent: "green" | "orange";
 }) {
+  const isGreen = accent === "green";
+
   return (
-    <div className="rounded-2xl border border-slate-800 bg-slate-900/50 p-5 transition hover:border-slate-700">
-      <p className="text-sm text-slate-500">
+    <div className="relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-md">
+      <div
+        className={`absolute left-0 top-0 h-full w-1 ${
+          isGreen ? "bg-green-600" : "bg-orange-500"
+        }`}
+      />
+
+      <p className="text-sm font-medium text-gray-500">
         {label}
       </p>
 
-      <p className="mt-2 text-2xl font-bold">
+      <p className="mt-2 text-2xl font-bold text-gray-900">
         {value}
       </p>
 
-      <p className="mt-1 text-xs text-slate-600">
+      <p
+        className={`mt-1 text-xs font-medium ${
+          isGreen ? "text-green-600" : "text-orange-500"
+        }`}
+      >
         {description}
       </p>
     </div>
