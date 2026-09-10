@@ -2,10 +2,14 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+
 import {
   buyStock,
   sellStock,
 } from "@/services/tradeService";
+
+import { getWallet } from "@/services/walletService";
+import { getPortfolio } from "@/services/portfolioService";
 
 type Trade = {
   t: number;
@@ -13,6 +17,19 @@ type Trade = {
   v: number;
   s: string;
   stock_id: number;
+};
+
+type Wallet = {
+  balance: number;
+};
+
+type PortfolioItem = {
+  stock_id: number;
+  symbol: string;
+  name: string;
+  quantity: number;
+  current_price: number;
+  market_value: number;
 };
 
 export default function StocksPage() {
@@ -45,15 +62,63 @@ export default function StocksPage() {
   const [tradeLoading, setTradeLoading] =
     useState(false);
 
-  const [tradeMessage, setTradeMessage] =
+  const [tradeError, setTradeError] =
     useState("");
 
-  const [tradeError, setTradeError] =
+  const [wallet, setWallet] =
+    useState<Wallet | null>(null);
+
+  const [portfolio, setPortfolio] =
+    useState<PortfolioItem[]>([]);
+
+  const [accountLoading, setAccountLoading] =
+    useState(true);
+
+  const [toastMessage, setToastMessage] =
     useState("");
 
   const socketRef =
     useRef<WebSocket | null>(null);
 
+  /*
+   * Load Wallet + Portfolio
+   */
+  const loadAccountData = async () => {
+    try {
+      setAccountLoading(true);
+
+      const [
+        walletData,
+        portfolioData,
+      ] = await Promise.all([
+        getWallet(),
+        getPortfolio(),
+      ]);
+
+      setWallet(walletData);
+
+      setPortfolio(
+        Array.isArray(portfolioData)
+          ? portfolioData
+          : []
+      );
+    } catch (error) {
+      console.error(
+        "Failed to load account data:",
+        error
+      );
+    } finally {
+      setAccountLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadAccountData();
+  }, []);
+
+  /*
+   * WebSocket
+   */
   useEffect(() => {
     setIsConnecting(true);
     setIsConnected(false);
@@ -65,7 +130,9 @@ export default function StocksPage() {
     socketRef.current = ws;
 
     ws.onopen = () => {
-      console.log("WebSocket connected");
+      console.log(
+        "WebSocket connected"
+      );
 
       setIsConnected(true);
       setIsConnecting(false);
@@ -73,41 +140,45 @@ export default function StocksPage() {
 
     ws.onmessage = (event) => {
       try {
-        const message = JSON.parse(
-          event.data
-        );
+        const message =
+          JSON.parse(event.data);
 
         if (
           message.type === "trade" &&
           Array.isArray(message.data)
         ) {
-          setTrades((currentTrades) => {
-            const updatedTrades = [
-              ...currentTrades,
-            ];
+          setTrades(
+            (currentTrades) => {
+              const updatedTrades = [
+                ...currentTrades,
+              ];
 
-            message.data.forEach(
-              (newTrade: Trade) => {
-                const existingIndex =
-                  updatedTrades.findIndex(
-                    (trade) =>
-                      trade.s === newTrade.s
-                  );
+              message.data.forEach(
+                (newTrade: Trade) => {
+                  const existingIndex =
+                    updatedTrades.findIndex(
+                      (trade) =>
+                        trade.s ===
+                        newTrade.s
+                    );
 
-                if (existingIndex >= 0) {
-                  updatedTrades[
-                    existingIndex
-                  ] = newTrade;
-                } else {
-                  updatedTrades.push(
-                    newTrade
-                  );
+                  if (
+                    existingIndex >= 0
+                  ) {
+                    updatedTrades[
+                      existingIndex
+                    ] = newTrade;
+                  } else {
+                    updatedTrades.push(
+                      newTrade
+                    );
+                  }
                 }
-              }
-            );
+              );
 
-            return updatedTrades;
-          });
+              return updatedTrades;
+            }
+          );
         }
       } catch (error) {
         console.error(
@@ -154,6 +225,9 @@ export default function StocksPage() {
     };
   }, [appliedMinVolume]);
 
+  /*
+   * Volume Filter
+   */
   const handleApplyFilter = () => {
     const value =
       Number(minVolumeInput);
@@ -189,6 +263,9 @@ export default function StocksPage() {
     );
   };
 
+  /*
+   * Formatting
+   */
   const formatTime = (
     timestamp: number
   ) => {
@@ -208,6 +285,20 @@ export default function StocksPage() {
       }
     );
 
+  const formatMoney = (
+    value: number
+  ) =>
+    value.toLocaleString(
+      undefined,
+      {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }
+    );
+
+  /*
+   * Open Trade Modal
+   */
   const openTradeModal = (
     trade: Trade,
     action: "BUY" | "SELL"
@@ -218,23 +309,78 @@ export default function StocksPage() {
 
     setQuantity("");
 
-    setTradeMessage("");
-
     setTradeError("");
+
+    /*
+     * Refresh wallet and portfolio whenever
+     * trade modal is opened.
+     */
+    loadAccountData();
   };
 
+  /*
+   * Close Trade Modal
+   */
   const closeTradeModal = () => {
+    if (tradeLoading) {
+      return;
+    }
+
     setSelectedTrade(null);
 
     setTradeAction(null);
 
     setQuantity("");
 
-    setTradeMessage("");
-
     setTradeError("");
   };
 
+  /*
+   * Current selected holding
+   */
+  const selectedHolding =
+    selectedTrade
+      ? portfolio.find(
+          (item) =>
+            item.stock_id ===
+            selectedTrade.stock_id
+        )
+      : undefined;
+
+  const ownedQuantity =
+    selectedHolding?.quantity ?? 0;
+
+  const parsedQuantity =
+    Number(quantity) || 0;
+
+  const estimatedTotal =
+    selectedTrade
+      ? selectedTrade.p *
+        parsedQuantity
+      : 0;
+
+  const balanceAfterPurchase =
+    wallet
+      ? wallet.balance -
+        estimatedTotal
+      : 0;
+
+  const insufficientBalance =
+    tradeAction === "BUY" &&
+    wallet !== null &&
+    parsedQuantity > 0 &&
+    estimatedTotal >
+      wallet.balance;
+
+  const insufficientStocks =
+    tradeAction === "SELL" &&
+    parsedQuantity > 0 &&
+    parsedQuantity >
+      ownedQuantity;
+
+  /*
+   * Buy / Sell
+   */
   const handleTrade = async () => {
     if (
       !selectedTrade ||
@@ -243,18 +389,63 @@ export default function StocksPage() {
       return;
     }
 
-    const parsedQuantity =
+    const tradeQuantity =
       Number(quantity);
 
     if (
-      Number.isNaN(parsedQuantity) ||
-      parsedQuantity <= 0 ||
+      Number.isNaN(
+        tradeQuantity
+      ) ||
+      tradeQuantity <= 0 ||
       !Number.isInteger(
-        parsedQuantity
+        tradeQuantity
       )
     ) {
       setTradeError(
         "Quantity must be a positive whole number."
+      );
+
+      return;
+    }
+
+    /*
+     * Frontend balance validation
+     */
+    if (
+      tradeAction === "BUY" &&
+      wallet &&
+      selectedTrade.p *
+        tradeQuantity >
+        wallet.balance
+    ) {
+      setTradeError(
+        "You do not have enough balance for this purchase."
+      );
+
+      return;
+    }
+
+    /*
+     * Frontend portfolio validation
+     */
+    if (
+      tradeAction === "SELL" &&
+      ownedQuantity === 0
+    ) {
+      setTradeError(
+        "You don't have this stock in your portfolio."
+      );
+
+      return;
+    }
+
+    if (
+      tradeAction === "SELL" &&
+      tradeQuantity >
+        ownedQuantity
+    ) {
+      setTradeError(
+        `You only own ${ownedQuantity} units of this stock.`
       );
 
       return;
@@ -265,8 +456,6 @@ export default function StocksPage() {
 
       setTradeError("");
 
-      setTradeMessage("");
-
       let response;
 
       if (
@@ -275,22 +464,60 @@ export default function StocksPage() {
         response =
           await buyStock(
             selectedTrade.stock_id,
-            parsedQuantity
+            tradeQuantity
           );
       } else {
         response =
           await sellStock(
             selectedTrade.stock_id,
-            parsedQuantity
+            tradeQuantity
           );
       }
 
-      setTradeMessage(
-        response.message ||
-          `${tradeAction} completed successfully.`
-      );
+      const shortSymbol =
+        selectedTrade.s
+          .replace(
+            "BINANCE:",
+            ""
+          )
+          .replace(
+            "USDT",
+            ""
+          );
+
+      const successMessage =
+        response?.message ||
+        (tradeAction === "BUY"
+          ? `Successfully purchased ${tradeQuantity} ${shortSymbol}`
+          : `Successfully sold ${tradeQuantity} ${shortSymbol}`);
+
+      /*
+       * Refresh latest wallet
+       * and portfolio after trade.
+       */
+      await loadAccountData();
+
+      /*
+       * Close modal automatically.
+       */
+      setSelectedTrade(null);
+
+      setTradeAction(null);
 
       setQuantity("");
+
+      setTradeError("");
+
+      /*
+       * Show success toast.
+       */
+      setToastMessage(
+        successMessage
+      );
+
+      setTimeout(() => {
+        setToastMessage("");
+      }, 3000);
     } catch (error: any) {
       console.error(
         "Trade failed:",
@@ -298,7 +525,8 @@ export default function StocksPage() {
       );
 
       setTradeError(
-        error?.response?.data?.detail ||
+        error?.response?.data
+          ?.detail ||
           "Trade failed. Please try again."
       );
     } finally {
@@ -306,6 +534,9 @@ export default function StocksPage() {
     }
   };
 
+  /*
+   * Most recent market update
+   */
   const lastUpdate =
     trades.length > 0
       ? Math.max(
@@ -330,7 +561,9 @@ export default function StocksPage() {
             </h1>
 
             <p className="mt-1 max-w-xl text-sm leading-6 text-gray-500">
-              Real-time cryptocurrency prices streamed through WebSockets.
+              Real-time cryptocurrency
+              prices streamed through
+              WebSockets.
             </p>
           </div>
 
@@ -443,7 +676,8 @@ export default function StocksPage() {
               </h2>
 
               <p className="mt-1 text-sm text-gray-500">
-                Filter incoming trades by minimum volume.
+                Filter incoming trades
+                by minimum volume.
               </p>
             </div>
 
@@ -464,9 +698,12 @@ export default function StocksPage() {
                   value={
                     minVolumeInput
                   }
-                  onChange={(event) =>
+                  onChange={(
+                    event
+                  ) =>
                     setMinVolumeInput(
-                      event.target.value
+                      event.target
+                        .value
                     )
                   }
                   onKeyDown={(
@@ -502,7 +739,9 @@ export default function StocksPage() {
             </p>
           ) : (
             <p className="mt-4 text-sm leading-6 text-gray-500">
-              Showing trades with volume greater than or equal to{" "}
+              Showing trades with
+              volume greater than or
+              equal to{" "}
               <span className="font-bold text-[#14532D]">
                 {
                   appliedMinVolume
@@ -521,18 +760,20 @@ export default function StocksPage() {
               </h2>
 
               <p className="mt-1 text-xs text-gray-500 sm:text-sm">
-                Latest market update for each asset.
+                Latest market update
+                for each asset.
               </p>
             </div>
 
             <div className="hidden shrink-0 items-center gap-2 text-xs font-medium text-green-700 sm:flex">
               <span className="h-2 w-2 animate-pulse rounded-full bg-green-600" />
+
               Auto updating
             </div>
           </div>
 
-          {/* Empty State */}
           {trades.length === 0 ? (
+            /* Empty State */
             <div className="flex min-h-[300px] items-center justify-center px-4 py-12 sm:min-h-[360px]">
               <div className="flex flex-col items-center gap-4 text-center">
                 {(isConnecting ||
@@ -678,7 +919,7 @@ export default function StocksPage() {
                 )}
               </div>
 
-              {/* Tablet / Desktop Table */}
+              {/* Tablet / Desktop */}
               <div className="hidden overflow-x-auto sm:block">
                 <table className="w-full min-w-[800px]">
                   <thead>
@@ -862,7 +1103,7 @@ export default function StocksPage() {
               </div>
 
               <div className="p-4 sm:p-6">
-                {/* Current Price */}
+                {/* Current Market Price */}
                 <div className="rounded-xl border border-green-100 bg-green-50 p-4">
                   <p className="text-xs font-bold uppercase tracking-wide text-gray-500">
                     Current Market Price
@@ -877,83 +1118,238 @@ export default function StocksPage() {
 
                   <div className="mt-2 flex items-center gap-2 text-xs font-semibold text-green-600">
                     <span className="h-2 w-2 rounded-full bg-green-600" />
+
                     Live price
                   </div>
                 </div>
 
-                {/* Quantity */}
-                <div className="mt-5">
-                  <label
-                    htmlFor="trade-quantity"
-                    className="mb-2 block text-sm font-semibold text-gray-700"
-                  >
-                    Quantity
-                  </label>
+                {/* BUY Wallet Information */}
+                {tradeAction ===
+                  "BUY" && (
+                  <div className="mt-4 rounded-xl border border-gray-200 bg-gray-50 p-4">
+                    <div className="flex items-center justify-between gap-4">
+                      <span className="text-sm font-medium text-gray-500">
+                        Available Balance
+                      </span>
 
-                  <input
-                    id="trade-quantity"
-                    type="number"
-                    min="1"
-                    step="1"
-                    value={
-                      quantity
-                    }
-                    onChange={(
-                      event
-                    ) =>
-                      setQuantity(
-                        event.target
-                          .value
-                      )
-                    }
-                    placeholder="Enter quantity"
-                    className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-green-600 focus:ring-2 focus:ring-green-100 sm:text-base"
-                  />
-                </div>
-
-                {/* Estimated Total */}
-                {quantity &&
-                  Number(
-                    quantity
-                  ) > 0 && (
-                    <div className="mt-5 rounded-xl border border-orange-100 bg-orange-50 p-4">
-                      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                        <span className="text-sm font-medium text-gray-500">
-                          Estimated Total
-                        </span>
-
-                        <span className="break-all text-xl font-bold text-orange-600">
-                          $
-                          {(
-                            selectedTrade.p *
-                            Number(
-                              quantity
-                            )
-                          ).toLocaleString(
-                            undefined,
-                            {
-                              minimumFractionDigits: 2,
-                              maximumFractionDigits: 2,
-                            }
-                          )}
-                        </span>
-                      </div>
+                      <span className="text-right font-bold text-[#14532D]">
+                        {accountLoading
+                          ? "Loading..."
+                          : wallet
+                            ? `$${formatMoney(
+                                wallet.balance
+                              )}`
+                            : "Unavailable"}
+                      </span>
                     </div>
-                  )}
-
-                {/* Trade Error */}
-                {tradeError && (
-                  <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm font-medium leading-5 text-red-600">
-                    {tradeError}
                   </div>
                 )}
 
-                {/* Trade Success */}
-                {tradeMessage && (
-                  <div className="mt-4 rounded-lg border border-green-200 bg-green-50 p-3 text-sm font-medium leading-5 text-green-700">
-                    {
-                      tradeMessage
-                    }
+                {/* SELL Portfolio Information */}
+                {tradeAction ===
+                  "SELL" && (
+                  <div
+                    className={`mt-4 rounded-xl border p-4 ${
+                      accountLoading
+                        ? "border-gray-200 bg-gray-50"
+                        : ownedQuantity >
+                            0
+                          ? "border-orange-200 bg-orange-50"
+                          : "border-red-200 bg-red-50"
+                    }`}
+                  >
+                    {accountLoading ? (
+                      <p className="text-sm text-gray-500">
+                        Checking your
+                        portfolio...
+                      </p>
+                    ) : ownedQuantity >
+                      0 ? (
+                      <div className="flex items-center justify-between gap-4">
+                        <span className="text-sm font-medium text-gray-600">
+                          You Own
+                        </span>
+
+                        <span className="font-bold text-orange-600">
+                          {ownedQuantity.toLocaleString()}{" "}
+                          units
+                        </span>
+                      </div>
+                    ) : (
+                      <div>
+                        <p className="font-bold text-red-600">
+                          You don&apos;t
+                          have this stock
+                          in your
+                          portfolio.
+                        </p>
+
+                        <p className="mt-1 text-sm leading-5 text-red-500">
+                          You need to
+                          purchase this
+                          asset before
+                          you can sell
+                          it.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Quantity */}
+                {!(
+                  tradeAction ===
+                    "SELL" &&
+                  !accountLoading &&
+                  ownedQuantity === 0
+                ) && (
+                  <div className="mt-5">
+                    <label
+                      htmlFor="trade-quantity"
+                      className="mb-2 block text-sm font-semibold text-gray-700"
+                    >
+                      Quantity
+                    </label>
+
+                    <input
+                      id="trade-quantity"
+                      type="number"
+                      min="1"
+                      max={
+                        tradeAction ===
+                        "SELL"
+                          ? ownedQuantity
+                          : undefined
+                      }
+                      step="1"
+                      value={
+                        quantity
+                      }
+                      onChange={(
+                        event
+                      ) => {
+                        setQuantity(
+                          event.target
+                            .value
+                        );
+
+                        setTradeError(
+                          ""
+                        );
+                      }}
+                      placeholder="Enter quantity"
+                      className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-green-600 focus:ring-2 focus:ring-green-100 sm:text-base"
+                    />
+
+                    {tradeAction ===
+                      "SELL" &&
+                      ownedQuantity >
+                        0 && (
+                        <p className="mt-2 text-xs text-gray-500">
+                          Maximum
+                          available:{" "}
+                          <span className="font-bold text-[#14532D]">
+                            {
+                              ownedQuantity
+                            }
+                          </span>
+                        </p>
+                      )}
+                  </div>
+                )}
+
+                {/* Estimated Total */}
+                {quantity &&
+                  parsedQuantity > 0 &&
+                  !(
+                    tradeAction ===
+                      "SELL" &&
+                    ownedQuantity === 0
+                  ) && (
+                    <div className="mt-5 rounded-xl border border-orange-100 bg-orange-50 p-4">
+                      <div className="flex items-center justify-between gap-4">
+                        <span className="text-sm font-medium text-gray-500">
+                          {tradeAction ===
+                          "BUY"
+                            ? "Estimated Cost"
+                            : "Estimated Sale"}
+                        </span>
+
+                        <span className="text-right text-xl font-bold text-orange-600">
+                          $
+                          {formatMoney(
+                            estimatedTotal
+                          )}
+                        </span>
+                      </div>
+
+                      {/* Balance After Buy */}
+                      {tradeAction ===
+                        "BUY" &&
+                        wallet && (
+                          <div className="mt-3 flex items-center justify-between gap-4 border-t border-orange-200 pt-3">
+                            <span className="text-sm font-medium text-gray-500">
+                              Balance
+                              After
+                              Purchase
+                            </span>
+
+                            <span
+                              className={`text-right font-bold ${
+                                balanceAfterPurchase >=
+                                0
+                                  ? "text-green-700"
+                                  : "text-red-600"
+                              }`}
+                            >
+                              $
+                              {formatMoney(
+                                balanceAfterPurchase
+                              )}
+                            </span>
+                          </div>
+                        )}
+                    </div>
+                  )}
+
+                {/* Insufficient Balance */}
+                {insufficientBalance && (
+                  <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3">
+                    <p className="text-sm font-bold text-red-600">
+                      Insufficient
+                      balance
+                    </p>
+
+                    <p className="mt-1 text-xs text-red-500">
+                      Reduce the
+                      quantity or add
+                      more funds to
+                      your account.
+                    </p>
+                  </div>
+                )}
+
+                {/* Insufficient Stocks */}
+                {insufficientStocks && (
+                  <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3">
+                    <p className="text-sm font-bold text-red-600">
+                      Not enough
+                      shares
+                    </p>
+
+                    <p className="mt-1 text-xs text-red-500">
+                      You only own{" "}
+                      {ownedQuantity}{" "}
+                      units of this
+                      asset.
+                    </p>
+                  </div>
+                )}
+
+                {/* Backend Trade Error */}
+                {tradeError && (
+                  <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm font-medium leading-5 text-red-600">
+                    {tradeError}
                   </div>
                 )}
 
@@ -972,34 +1368,64 @@ export default function StocksPage() {
                     Cancel
                   </button>
 
-                  <button
-                    type="button"
-                    onClick={
-                      handleTrade
-                    }
-                    disabled={
-                      tradeLoading ||
-                      !quantity ||
-                      Number(
-                        quantity
-                      ) <= 0
-                    }
-                    className={`flex-1 rounded-lg px-4 py-3 text-sm font-bold text-white transition disabled:cursor-not-allowed disabled:opacity-50 sm:text-base ${
-                      tradeAction ===
-                      "BUY"
-                        ? "bg-green-600 hover:bg-green-700"
-                        : "bg-red-600 hover:bg-red-700"
-                    }`}
-                  >
-                    {tradeLoading
-                      ? "Processing..."
-                      : `Confirm ${tradeAction}`}
-                  </button>
+                  {!(
+                    tradeAction ===
+                      "SELL" &&
+                    !accountLoading &&
+                    ownedQuantity === 0
+                  ) && (
+                    <button
+                      type="button"
+                      onClick={
+                        handleTrade
+                      }
+                      disabled={
+                        tradeLoading ||
+                        accountLoading ||
+                        !quantity ||
+                        parsedQuantity <=
+                          0 ||
+                        insufficientBalance ||
+                        insufficientStocks
+                      }
+                      className={`flex-1 rounded-lg px-4 py-3 text-sm font-bold text-white transition disabled:cursor-not-allowed disabled:opacity-50 sm:text-base ${
+                        tradeAction ===
+                        "BUY"
+                          ? "bg-green-600 hover:bg-green-700"
+                          : "bg-red-600 hover:bg-red-700"
+                      }`}
+                    >
+                      {tradeLoading
+                        ? "Processing..."
+                        : `Confirm ${tradeAction}`}
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
           </div>
         )}
+
+      {/* Success Toast */}
+      {toastMessage && (
+        <div className="fixed right-4 top-4 z-[200] w-[calc(100%-2rem)] max-w-sm rounded-xl border border-green-200 bg-white p-4 shadow-2xl sm:right-6 sm:top-6">
+          <div className="flex items-start gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-green-100 font-bold text-green-700">
+              ✓
+            </div>
+
+            <div className="min-w-0">
+              <p className="font-bold text-[#14532D]">
+                Trade successful
+              </p>
+
+              <p className="mt-1 break-words text-sm text-gray-600">
+                {toastMessage}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
