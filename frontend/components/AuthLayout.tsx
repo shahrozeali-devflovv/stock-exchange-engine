@@ -25,7 +25,7 @@ export default function AuthLayout({
     const publicPages = ["/register", "/login"];
 
     if (!loggedIn && !publicPages.includes(pathname)) {
-      router.replace("/register");
+      router.replace("/login");
       return;
     }
 
