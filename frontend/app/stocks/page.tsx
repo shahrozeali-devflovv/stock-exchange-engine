@@ -613,9 +613,7 @@ export default function StocksPage() {
             </div>
           </div>
 
-          <div className="w-fit rounded-lg bg-white px-4 py-2 text-xs font-medium text-green-700 shadow-sm sm:text-sm">
-            WebSocket market feed
-          </div>
+          
         </div>
 
         {/* Summary Cards */}
@@ -638,7 +636,7 @@ export default function StocksPage() {
                   ? "Connecting"
                   : "Offline"
             }
-            description="WebSocket market status"
+            description=""
             accent="orange"
           />
 
